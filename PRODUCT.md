@@ -17,7 +17,7 @@ The user clarified that a true person cutout is required: retain the person and 
 - The user starts and stops recording with native macOS controls.
 - The overlay supports camera selection, mirroring, size, Circle/Rounded/Cutout style, border for geometric styles, dragging, click-through, and saved preferences.
 - No main window opens at launch. Guidance lives inside the menu-bar popover.
-- Implementation proceeds one source file at a time. No push is authorized.
+- Implementation proceeds one source file at a time. The owner approved publishing the verified source to `isaachuahy/presenter-macos` after local installation checks passed.
 - Distribution starts with a source-based GitHub checkout and one local install command. Prebuilt downloads and notarization are deferred at the user's request.
 
 ## Interface direction

@@ -40,7 +40,7 @@ Installer results from that clean copy:
 
 These checks ran after the owner's explicit local-verification approval. Swift 6.4 emitted linker warnings about two missing Command Line Tools development search directories; builds, linking, tests, and installed signature verification nevertheless succeeded. No compiler or test failure remains.
 
-The local Git repository is prepared on `main`. Nothing has been published. The README's `isaachuahy/presenter-macos` URL is the proposed publication destination and is not yet available. Creating the remote repository and pushing require separate owner approval.
+The source repository uses `main`. The owner approved public repository creation and source publication to `isaachuahy/presenter-macos` after these local checks passed. Installation instructions are in `README.md`; this setup distributes source that users build on their own Macs.
 
 ## Distribution scope
 
