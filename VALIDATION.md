@@ -52,10 +52,18 @@ Cutout preset widths increased from 160/224/320 to 320/448/640 points. Heights r
 
 All 12 existing tests passed after the change. The release app rebuilt and passed strict signature verification. Presenter was restarted, and its live Large Cutout was visually inspected; the persisted frame confirmed a 640 × 480-point panel. The saved-movie playback check was not repeated for this sizing update.
 
-## Fine-size slider, 2026-10-17
+## Preset-relative slider, 2026-10-17 (superseded)
 
 Small, Medium, and Large remain quick presets. A native slider adjusts the selected preset from 50% to 150% in 1% steps, with a percentage readout and Reset button. Choosing another preset resets the adjustment to 100%. The adjustment is stored separately from the preset and safely normalized when preferences load.
 
 All 14 tests passed, including fine-resize center/aspect preservation and five invalid or out-of-range adjustment cases. The release app rebuilt and passed strict signature verification.
 
-After the owner opened the menu-bar panel, native accessibility actions moved the slider in 1% steps. Large at 125% produced an 800 × 600-point panel. Choosing Medium returned the slider to 100%; the Reset button independently restored 100% after another adjustment. The native layout and percentage readout were visually inspected. Presenter was then quit and relaunched with Large at 110%; its restored 704 × 528-point frame and saved 1.1 adjustment confirmed persistence. The running app remains at that tested Large 110% setting. The saved-movie playback check was not repeated for this sizing-control update.
+After the owner opened the menu-bar panel, native accessibility actions moved the slider in 1% steps. Large at 125% produced an 800 × 600-point panel. Choosing Medium returned the slider to 100%; the Reset button independently restored 100% after another adjustment. The native layout and percentage readout were visually inspected. Presenter was then quit and relaunched with Large at 110%; its restored 704 × 528-point frame and saved 1.1 adjustment confirmed persistence. At completion of that check, the app was at Large 110%. The saved-movie playback check was not repeated for this sizing-control update.
+
+## Shared size slider, 2026-10-17 (current)
+
+The owner clarified that presets must be points within one continuous range. The percentage adjustment was replaced by a shared width slider and three preset buttons. Circle/Rounded span 128–384 points with anchors at 160, 224, and 320; Cutout spans 256–768 with anchors at 320, 448, and 640. Custom widths leave all three buttons unselected. Clicking a preset, including an already-selected one, snaps to its exact width without changing the range.
+
+All 16 tests passed, including shared-range invariants, safe invalid widths, center/aspect preservation, and migration from the previous preset-plus-percentage preferences. The release app built and passed strict signature verification. Live checks confirmed Circle preset snaps to 160/224/320, one-point movement below Small and above Large, and selection clearing at custom widths. Cutout snapped to 448 and 640; repeated selection retained the active anchor. The native slider layout and point readout were visually inspected.
+
+The saved Circle 150%-of-Large setting exceeded the new range and was clamped to 384 points. After the interaction checks, Circle at that 384-point width was saved, quit, and relaunched; the restored 384 × 384 frame confirmed the new preference round trip. The saved-movie playback check was not repeated for this control-only update.

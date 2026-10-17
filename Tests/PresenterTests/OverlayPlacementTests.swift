@@ -18,9 +18,9 @@ struct OverlayPlacementTests {
         #expect(frame.size == CGSize(width: 320, height: 240))
     }
 
-    @Test func fineAdjustmentPreservesCutoutCenterAndAspectRatio() {
+    @Test func continuousSizePreservesCutoutCenterAndAspectRatio() {
         let saved = CGRect(x: 300, y: 200, width: 640, height: 480)
-        let size = OverlaySize.medium.dimensions(for: .cutout, scale: 1.25)
+        let size = OverlaySize.dimensions(width: 280, for: .cutout)
         let frame = OverlayPlacement.frame(preferred: saved, size: size, screens: [desktop])
         #expect(frame.size == CGSize(width: 560, height: 420))
         #expect(frame.midX == saved.midX)
@@ -28,14 +28,27 @@ struct OverlayPlacementTests {
         #expect(desktop.contains(frame))
     }
 
-    @Test(arguments: [Double.nan, Double.infinity, -Double.infinity, -2, 4])
-    func invalidAdjustmentProducesSafeFrame(_ scale: Double) {
-        let size = OverlaySize.large.dimensions(for: .cutout, scale: scale)
+    @Test(arguments: [Double.nan, Double.infinity, -Double.infinity, -2, 1000])
+    func invalidWidthProducesSafeFrame(_ width: Double) {
+        let size = OverlaySize.dimensions(width: width, for: .cutout)
         let frame = OverlayPlacement.frame(preferred: nil, size: size, screens: [desktop])
         #expect(frame.width.isFinite && frame.height.isFinite)
-        #expect((320...960).contains(frame.width))
+        #expect((256...768).contains(frame.width))
         #expect(frame.height == frame.width * 0.75)
         #expect(desktop.contains(frame))
+    }
+
+    @Test func presetsAreInteriorPointsOfOneSizeRange() {
+        for preset in OverlaySize.allCases {
+            #expect(preset.width > OverlaySize.widthRange.lowerBound)
+            #expect(preset.width < OverlaySize.widthRange.upperBound)
+        }
+    }
+
+    @Test func savedWidthTakesPrecedenceOverMigratedPresetAdjustment() {
+        #expect(OverlaySize.restoredWidth(saved: nil, preset: .large, legacyScale: 1.1) == 352)
+        #expect(OverlaySize.restoredWidth(saved: nil, preset: .medium, legacyScale: .nan) == 224)
+        #expect(OverlaySize.restoredWidth(saved: 280, preset: .large, legacyScale: 1.1) == 280)
     }
 
     @Test func negativeCoordinatesStayOnSecondaryDisplay() {

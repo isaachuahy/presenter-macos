@@ -30,12 +30,7 @@ final class AppModel: ObservableObject {
         }
     }
     @Published var shape: OverlayShape { didSet { persistOverlay() } }
-    @Published var size: OverlaySize {
-        didSet {
-            if sizeScale != 1 { sizeScale = 1 } else { persistOverlay() }
-        }
-    }
-    @Published var sizeScale: Double { didSet { persistOverlay() } }
+    @Published private var sizeWidth: Double { didSet { persistOverlay() } }
     @Published var mirrored: Bool { didSet { persistOverlay() } }
     @Published var showsBorder: Bool { didSet { persistOverlay() } }
     @Published var clickThrough: Bool { didSet { persistOverlay() } }
@@ -43,14 +38,35 @@ final class AppModel: ObservableObject {
     @Published private(set) var error: String?
     @Published private(set) var folderPath: String
 
+    var overlayWidth: Double {
+        get { sizeWidth * shape.sizeMultiplier }
+        set { sizeWidth = OverlaySize.clampedWidth(newValue.rounded() / shape.sizeMultiplier) }
+    }
+
+    var sizeRange: ClosedRange<Double> {
+        let multiplier = shape.sizeMultiplier
+        return (OverlaySize.widthRange.lowerBound * multiplier)...(OverlaySize.widthRange.upperBound * multiplier)
+    }
+
+    var selectedSize: OverlaySize? {
+        OverlaySize.allCases.first { $0.width == sizeWidth }
+    }
+
+    func selectSize(_ preset: OverlaySize) {
+        sizeWidth = preset.width
+    }
+
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         camera = CameraController(defaults: defaults)
         overlay = OverlayController(session: camera.session, defaults: defaults)
         overlayVisible = defaults.bool(forKey: "overlayVisible")
         shape = defaults.string(forKey: "overlayShape").flatMap(OverlayShape.init(rawValue:)) ?? .circle
-        size = defaults.string(forKey: "overlaySize").flatMap(OverlaySize.init(rawValue:)) ?? .medium
-        sizeScale = OverlaySize.clampedScale(defaults.object(forKey: "overlaySizeScale") as? Double ?? 1)
+        let previousSize = defaults.string(forKey: "overlaySize").flatMap(OverlaySize.init(rawValue:)) ?? .medium
+        sizeWidth = OverlaySize.restoredWidth(
+            saved: defaults.object(forKey: "overlayWidth") as? Double,
+            preset: previousSize, legacyScale: defaults.object(forKey: "overlaySizeScale") as? Double ?? 1
+        )
         mirrored = defaults.object(forKey: "mirrored") as? Bool ?? true
         showsBorder = defaults.object(forKey: "showsBorder") as? Bool ?? true
         clickThrough = defaults.bool(forKey: "clickThrough")
@@ -220,8 +236,7 @@ final class AppModel: ObservableObject {
 
     private func persistOverlay() {
         defaults.set(shape.rawValue, forKey: "overlayShape")
-        defaults.set(size.rawValue, forKey: "overlaySize")
-        defaults.set(sizeScale, forKey: "overlaySizeScale")
+        defaults.set(sizeWidth, forKey: "overlayWidth")
         defaults.set(mirrored, forKey: "mirrored")
         defaults.set(showsBorder, forKey: "showsBorder")
         defaults.set(clickThrough, forKey: "clickThrough")
@@ -232,7 +247,7 @@ final class AppModel: ObservableObject {
     private func updateOverlay() {
         camera.setCutoutEnabled(shape == .cutout)
         overlay.configure(
-            shape: shape, size: size, sizeScale: sizeScale, border: showsBorder, mirrored: mirrored,
+            shape: shape, width: sizeWidth, border: showsBorder, mirrored: mirrored,
             clickThrough: clickThrough, state: camera.state, cutoutError: camera.cutoutError
         )
     }

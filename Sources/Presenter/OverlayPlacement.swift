@@ -6,6 +6,8 @@ enum OverlayShape: String, CaseIterable, Identifiable {
     case cutout = "Cutout"
 
     var id: String { rawValue }
+
+    var sizeMultiplier: Double { self == .cutout ? 2 : 1 }
 }
 
 enum OverlaySize: String, CaseIterable, Identifiable {
@@ -15,21 +17,35 @@ enum OverlaySize: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    static let scaleRange = 0.5...1.5
-
-    static func clampedScale(_ value: Double) -> Double {
-        guard value.isFinite else { return 1 }
-        return min(max(value, scaleRange.lowerBound), scaleRange.upperBound)
-    }
-
-    func dimensions(for shape: OverlayShape, scale: Double = 1) -> CGSize {
-        let baseWidth: CGFloat = switch self {
+    /// Width in points for Circle and Rounded; Cutout uses twice this width.
+    var width: Double {
+        switch self {
         case .small: 160
         case .medium: 224
         case .large: 320
         }
-        let presetWidth = shape == .cutout ? baseWidth * 2 : baseWidth
-        let width = presetWidth * CGFloat(Self.clampedScale(scale))
+    }
+
+    static let widthRange = 128.0...384.0
+
+    static func clampedWidth(_ value: Double) -> Double {
+        guard value.isFinite else { return medium.width }
+        return min(max(value, widthRange.lowerBound), widthRange.upperBound)
+    }
+
+    /// Keeps the previous preset-relative setting when upgrading to a single saved width.
+    static func restoredWidth(saved: Double?, preset: OverlaySize, legacyScale: Double) -> Double {
+        if let saved { return clampedWidth(saved) }
+        let scale = legacyScale.isFinite ? min(max(legacyScale, 0.5), 1.5) : 1
+        return clampedWidth(preset.width * scale)
+    }
+
+    func dimensions(for shape: OverlayShape) -> CGSize {
+        Self.dimensions(width: width, for: shape)
+    }
+
+    static func dimensions(width: Double, for shape: OverlayShape) -> CGSize {
+        let width = CGFloat(clampedWidth(width) * shape.sizeMultiplier)
         return CGSize(width: width, height: shape == .circle ? width : width * 0.75)
     }
 }

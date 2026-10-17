@@ -139,27 +139,38 @@ private struct PresenterControls: View {
                     Text("Removing background…").font(.caption).foregroundStyle(.secondary)
                 }
             }
-            Picker("Size", selection: $model.size) {
-                ForEach(OverlaySize.allCases) { size in Text(size.rawValue).tag(size) }
-            }
-            .pickerStyle(.segmented)
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text("Fine size")
+                    Text("Size")
                     Spacer()
-                    Text(model.sizeScale, format: .percent.precision(.fractionLength(0)))
+                    Text("\(Int(model.overlayWidth.rounded())) pt")
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
-                    Button("Reset") { model.sizeScale = 1 }
-                        .buttonStyle(.borderless)
-                        .disabled(model.sizeScale == 1)
-                        .accessibilityLabel("Reset size adjustment")
                 }
                 .font(.caption)
-                Slider(value: $model.sizeScale, in: OverlaySize.scaleRange, step: 0.01)
-                    .accessibilityLabel("Camera size adjustment")
-                    .accessibilityValue(Text(model.sizeScale, format: .percent.precision(.fractionLength(0))))
-                    .help("Fine-tunes the selected preset. Choosing another preset resets this to 100%.")
+                Slider(value: $model.overlayWidth, in: model.sizeRange)
+                    .accessibilityLabel("Camera size")
+                    .accessibilityValue("\(Int(model.overlayWidth.rounded())) points")
+                    .accessibilityAdjustableAction { direction in
+                        switch direction {
+                        case .increment: model.overlayWidth += 1
+                        case .decrement: model.overlayWidth -= 1
+                        @unknown default: break
+                        }
+                    }
+                    .help("Choose any size, or snap to Small, Medium, or Large below.")
+                HStack(spacing: 6) {
+                    ForEach(OverlaySize.allCases) { size in
+                        Toggle(isOn: Binding(
+                            get: { model.selectedSize == size },
+                            set: { _ in model.selectSize(size) }
+                        )) {
+                            Text(size.rawValue).frame(maxWidth: .infinity)
+                        }
+                        .toggleStyle(.button)
+                        .help("\(Int(size.dimensions(for: model.shape).width)) points wide")
+                    }
+                }
             }
             Toggle("White Border", isOn: $model.showsBorder)
                 .disabled(model.shape == .cutout)

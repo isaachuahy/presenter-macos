@@ -61,7 +61,7 @@ The installer creates `~/Applications/Presenter.app`. It refuses to replace an u
 
 Presenter opens the native recorder; you start and stop recording there. It does not detect recording status. The camera stays active until hidden or Presenter quits, pauses during Mac sleep, and resumes on wake when enabled. Presenter captures no microphone audio itself.
 
-Keep Small, Medium, and Large as quick size choices, then use **Fine size** to adjust the selected preset from 50% to 150%. **Reset** restores 100%; choosing another preset also resets the adjustment. Your adjustment is saved across launches.
+Use the **Size** slider for one continuous range. **Small**, **Medium**, and **Large** snap the slider to fixed preset sizes; between those points, no preset is selected. The range extends 20% below Small and 20% above Large. For Cutout, that is 256–768 points wide, with presets at 320, 448, and 640. Your size is saved across launches, and existing preset-relative settings carry over within the new range.
 
 **Open Recordings Folder** is a Finder shortcut, initially Desktop. Its folder button changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
 
@@ -81,7 +81,7 @@ Build without installing:
 zsh build.sh
 ```
 
-Run the 14 placement and person-mask tests:
+Run the 16 placement and person-mask tests:
 
 ```sh
 zsh build.sh test
