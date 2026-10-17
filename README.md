@@ -67,7 +67,7 @@ The panel keeps **Open Screen Recorder** at the top, with camera, style, and siz
 
 **Recordings** in the footer is a Finder shortcut, initially Desktop. **More Controls → Choose Recordings Folder…** changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
 
-On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liquid Glass recorder button. Older tools and systems retain a standard prominent button.
+On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liquid Glass for the whole control panel. The recorder stays a clear primary action within that shared surface. Older tools and systems retain the native popover material.
 
 ## Update or uninstall
 

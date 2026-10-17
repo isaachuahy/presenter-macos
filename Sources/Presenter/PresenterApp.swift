@@ -40,7 +40,22 @@ private struct PresenterControls: View {
         camera = model.camera
     }
 
+    @ViewBuilder
     var body: some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            panelContent
+                .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                .containerBackground(.clear, for: .window)
+        } else {
+            panelContent
+        }
+        #else
+        panelContent
+        #endif
+    }
+
+    private var panelContent: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
                 header
@@ -104,7 +119,8 @@ private struct PresenterControls: View {
 
     private var recording: some View {
         VStack(alignment: .leading, spacing: 8) {
-            primaryRecorderButton
+            recorderButton
+                .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .disabled(model.openingRecorder)
                 .keyboardShortcut("r", modifiers: [.command, .shift])
@@ -128,19 +144,6 @@ private struct PresenterControls: View {
                     .disabled(model.openingRecorder)
             }
         }
-    }
-
-    @ViewBuilder
-    private var primaryRecorderButton: some View {
-        #if compiler(>=6.2)
-        if #available(macOS 26.0, *) {
-            recorderButton.buttonStyle(.glassProminent)
-        } else {
-            recorderButton.buttonStyle(.borderedProminent)
-        }
-        #else
-        recorderButton.buttonStyle(.borderedProminent)
-        #endif
     }
 
     private var recorderButton: some View {

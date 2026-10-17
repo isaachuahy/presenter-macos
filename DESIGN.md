@@ -45,7 +45,9 @@ Size uses one continuous range, independent of the preset buttons. Circle and Ro
 
 ## Elevation & Depth
 
-The menu-bar popover delegates its background and depth to macOS. On macOS 26 and later, the primary recorder action uses Apple's native `.glassProminent` button style. Earlier systems use `.borderedProminent`; the minimum remains macOS 14. Native materials and controls handle appearance and accessibility preferences. Do not stack custom glass backgrounds behind the system popover or add glass to every settings group.
+On macOS 26 and later, builds made with Swift 6.2 or later give the whole panel one native `.glassEffect(.regular, in: .rect(cornerRadius: 20))` surface. The window's standard backing is cleared with `.containerBackground(.clear, for: .window)` so it does not obscure the glass. The system supplies the material, edge treatment, and foreground adaptation. The recorder uses a standard `.borderedProminent` filled button within that shared surface; do not add another glass layer to each control or settings group.
+
+Older systems and toolchains retain the native system popover material. The minimum remains macOS 14. Native materials, semantic colors, and controls handle appearance and accessibility preferences. Do not approximate the glass with custom blur, opacity, gradients, borders, or shadows.
 
 The camera uses a transparent, borderless, nonactivating `NSPanel` at `.floating` level. Circle and Rounded enable the AppKit window shadow; Cutout disables it. There are no custom shadow tokens. Layout changes disable implicit Core Animation actions so resizing and clipping stay aligned.
 
