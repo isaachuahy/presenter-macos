@@ -35,7 +35,7 @@ Preserve the implemented reading order:
 2. Open Screen Recorder and a short microphone hint, followed by any recovery guidance.
 3. Show Camera and camera selection.
 4. Appearance: style, continuous size slider, and preset buttons.
-5. More Controls, initially collapsed: mirroring, border, click-through, position reset, and folder shortcut settings.
+5. More Controls, initially collapsed: mirroring, border, click-through, position reset, and recording save location.
 6. Recording Guide, revealed by Help in the footer.
 7. Fixed footer: Recordings, Help, and Quit.
 
@@ -66,7 +66,7 @@ Cutout displays a transparent person layer with `.resizeAspect`, preserving the 
 - **Camera controls:** Show Camera uses a switch; the camera picker disables when no camera is connected. Mirror Camera is under More Controls.
 - **Overlay controls:** the Style segmented picker offers Circle, Rounded, and Cutout. Size has one native slider with a point-width readout and three native toggle-style preset buttons below it. Their selected states follow the current width; clicking a preset snaps the slider to that point. The slider exposes its purpose and width to accessibility. Cutout shows local background-removal guidance and disables White Border. It shows “Removing background…” until ready, or an error with Retry Cutout. The click-through toggle has conditional text explaining how to restore dragging. Reset Camera Position has a help label.
 - **Recording Guide:** Help reveals compact, wrapping instructions and scrolls them into view. The guide starts hidden. It explains Cutout selection, microphone selection, capture area, stopping, playback checks, and camera cleanup.
-- **Folder shortcut:** Recordings in the footer opens the chosen folder. Choose Recordings Folder under More Controls changes the shortcut. The path truncates in the middle and exposes the full path through help text. Copy states that Screenshot's Save to setting is separate.
+- **Save location:** Change Save Location under More Controls updates Screenshot's shared file destination. Recordings in the footer reloads and opens the current recording folder. The destination refreshes when Presenter becomes active, a window becomes key, or a folder/recorder action runs. Non-folder outputs such as QuickTime Player and Mail are shown explicitly. The path truncates in the middle and exposes the full value through help text. The native picker explains that the folder also applies to still screenshots saved as files and takes effect when the recorder is next opened.
 - **Camera panel:** dragging moves the panel unless click-through is enabled. Camera status replaces the preview while it is not running. Cutout shows “Removing background…” before a valid frame or “Cutout unavailable” after failure. Style, size, mirroring, and border update through the menu-bar controls.
 - **Quit:** a native footer button supports Command-Q.
 
@@ -76,7 +76,7 @@ Cutout displays a transparent person layer with `.resizeAspect`, preserving the 
 - **Do** preserve semantic fonts, colors, native focus behavior, accessibility labels, and explanatory text alongside icons.
 - **Do** keep the controls reachable when the camera ignores mouse events.
 - **Do** describe the recording action as opening Apple's recorder; the user starts and stops capture there.
-- **Don't** present the folder shortcut as changing Screenshot's save destination.
+- **Don't** keep a separate folder shortcut that can drift from Screenshot's destination or present an app output as a folder.
 - **Don't** imply Presenter knows when Screenshot stops recording.
 - **Don't** add decorative chrome, fixed web color approximations, or invented component systems to the native camera surface.
 - **Don't** add a geometric border, corner crop, or window shadow to the running Cutout person layer.

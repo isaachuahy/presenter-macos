@@ -8,6 +8,7 @@ final class AppModel: ObservableObject {
     let camera: CameraController
     private let overlay: OverlayController
     private let defaults: UserDefaults
+    private let saveLocation = ScreenshotSaveLocation()
     private var observers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
     private var pendingRecorder = false
@@ -36,7 +37,7 @@ final class AppModel: ObservableObject {
     @Published var clickThrough: Bool { didSet { persistOverlay() } }
     @Published private(set) var openingRecorder = false
     @Published private(set) var error: String?
-    @Published private(set) var folderPath: String
+    @Published private(set) var recordingDestination: RecordingDestination
 
     var overlayWidth: Double {
         get { sizeWidth * shape.sizeMultiplier }
@@ -70,9 +71,7 @@ final class AppModel: ObservableObject {
         mirrored = defaults.object(forKey: "mirrored") as? Bool ?? true
         showsBorder = defaults.object(forKey: "showsBorder") as? Bool ?? true
         clickThrough = defaults.bool(forKey: "clickThrough")
-        folderPath = defaults.string(forKey: "recordingsFolder")
-            ?? FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first?.path
-            ?? NSHomeDirectory()
+        recordingDestination = saveLocation.read()
         camera.onStateChange = { [weak self] state in self?.cameraChanged(state) }
         camera.onCutoutFrame = { [weak self] image in
             guard let self else { return }
@@ -94,6 +93,13 @@ final class AppModel: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in self?.overlay.restorePlacement() }
         })
+        for notification in [NSApplication.didBecomeActiveNotification, NSWindow.didBecomeKeyNotification] {
+            observers.append(NotificationCenter.default.addObserver(
+                forName: notification, object: nil, queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in self?.refreshRecordingDestination() }
+            })
+        }
         let center = NSWorkspace.shared.notificationCenter
         workspaceObservers.append(center.addObserver(
             forName: NSWorkspace.willSleepNotification, object: nil, queue: .main
@@ -154,33 +160,54 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Opens the user's folder shortcut. Screenshot's own Options menu controls where recordings are saved.
+    /// Reloads Screenshot's destination so folder actions follow changes made in its Options menu.
+    func refreshRecordingDestination() {
+        let current = saveLocation.read()
+        if current != recordingDestination { recordingDestination = current }
+    }
+
+    /// Opens Screenshot's current recording folder, or explains why no folder is available.
     func openRecordingsFolder() {
-        var directory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: folderPath, isDirectory: &directory), directory.boolValue else {
-            error = "The folder is unavailable. Choose a folder, then select that location in Screenshot Options."
+        refreshRecordingDestination()
+        guard let folder = recordingDestination.folderURL else {
+            error = "Screenshot is not saving recordings to a folder. Choose a recording save location under More Controls."
             return
         }
-        if !NSWorkspace.shared.open(URL(fileURLWithPath: folderPath, isDirectory: true)) {
-            error = "Finder could not open the folder. Choose another folder and try again."
+        var directory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &directory), directory.boolValue else {
+            error = "The recording folder is unavailable. Choose another save location under More Controls."
+            return
+        }
+        NSWorkspace.shared.open(folder, configuration: .init()) { [weak self] _, openError in
+            guard let reason = openError?.localizedDescription else { return }
+            Task { @MainActor [weak self] in
+                self?.error = "Finder could not open the recording folder: \(reason)"
+            }
         }
     }
 
+    /// Changes Screenshot's shared save folder, then refreshes every Presenter folder action.
     func chooseRecordingsFolder() {
+        refreshRecordingDestination()
         let panel = NSOpenPanel()
-        panel.title = "Choose Recordings Folder Shortcut"
-        panel.message = "Choose the same folder in Screenshot → Options → Save to. This shortcut does not change Screenshot settings."
-        panel.prompt = "Choose Folder"
+        panel.title = "Choose Recording Save Location"
+        panel.message = "This updates Screenshot’s Save to folder, including screenshots saved as files. It applies when you next open the recorder."
+        panel.prompt = "Use Folder"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
-        panel.directoryURL = URL(fileURLWithPath: folderPath, isDirectory: true)
+        panel.directoryURL = recordingDestination.folderURL
         NSApplication.shared.activate()
         panel.begin { [weak self] result in
-            guard result == .OK, let url = panel.url else { return }
-            self?.folderPath = url.path
-            self?.defaults.set(url.path, forKey: "recordingsFolder")
+            guard result == .OK, let url = panel.url, let self else { return }
+            do {
+                try saveLocation.setFolder(url)
+                refreshRecordingDestination()
+                error = nil
+            } catch {
+                self.error = error.localizedDescription
+            }
         }
     }
 
@@ -220,6 +247,7 @@ final class AppModel: ObservableObject {
     }
 
     private func launchScreenshot() {
+        refreshRecordingDestination()
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.screenshot.launcher") else {
             openingRecorder = false
             error = "Screenshot was not found. Press Shift-Command-5 to open the native recorder."

@@ -92,7 +92,10 @@ private struct PresenterControls: View {
         }
         .font(.body)
         .frame(width: 360, height: showMoreControls || showGuide ? 650 : 510)
-        .onAppear { camera.refreshDevices() }
+        .onAppear {
+            camera.refreshDevices()
+            model.refreshRecordingDestination()
+        }
     }
 
     private var header: some View {
@@ -252,7 +255,7 @@ private struct PresenterControls: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("1. Show the camera and allow camera access when macOS asks. Choose Cutout to remove the background, then drag the preview into place.")
                 Text("2. Open Screen Recorder. Choose Record Entire Screen or Record Selected Portion and include the camera. Single-window recording may leave it out.")
-                Text("3. In Options, select a microphone and Save to folder. Allow microphone access if macOS asks, then click Record.")
+                Text("3. Select a microphone in Options. Choose Save to there or use Presenter’s Change Save Location. Allow microphone access if macOS asks, then click Record.")
                 Text("4. Stop with the menu-bar Stop button or Control-Command-Escape. Play the saved movie to check picture and speech.")
                 Text("Presenter cannot detect when Screenshot stops. Hide the camera when finished to release it.")
                     .foregroundStyle(.secondary)
@@ -264,17 +267,17 @@ private struct PresenterControls: View {
 
     private var folderControls: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button("Choose Recordings Folder…", action: model.chooseRecordingsFolder)
-                .help("Choose the same Save to folder in Screenshot Options.")
-            Text("This shortcut does not change Screenshot’s Save to setting.")
+            Button("Change Save Location…", action: model.chooseRecordingsFolder)
+                .help("Updates Screenshot’s shared save folder. Applies when you next open the recorder.")
+            Text("Shared with Screenshot → Options → Save to.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Text(model.folderPath)
+            Text(model.recordingDestination.description)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .help(model.folderPath)
+                .help(model.recordingDestination.description)
         }
     }
 
@@ -284,6 +287,7 @@ private struct PresenterControls: View {
                 Label("Recordings", systemImage: "folder")
             }
             .accessibilityLabel("Open Recordings Folder")
+            .help("Opens Screenshot’s current recording folder.")
             Spacer()
             Button { showGuide.toggle() } label: {
                 Label("Help", systemImage: "questionmark.circle")

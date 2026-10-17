@@ -65,7 +65,9 @@ Use the **Size** slider for one continuous range. **Small**, **Medium**, and **L
 
 The panel keeps **Open Screen Recorder** at the top, with camera, style, and size controls below. **More Controls** holds mirroring, border, click-through, position reset, and folder settings. **Help** in the footer opens the recording guide. The recorder action and footer stay visible while expanded settings scroll.
 
-**Recordings** in the footer is a Finder shortcut, initially Desktop. **More Controls → Choose Recordings Folder…** changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
+**More Controls → Change Save Location…** sets Screenshot's shared save folder. **Recordings** in the footer opens the current recording folder. Changes made in **Screenshot → Options → Save to** are picked up when Presenter becomes active or you use a folder action. Apply changes before opening the recorder; an already-open Screenshot toolbar may retain its previous selection.
+
+Screenshot's custom folder is also used for still screenshots saved as files. If Screenshot is set to open recordings in QuickTime Player or Mail, Presenter displays that output mode instead of a misleading folder shortcut. Choose a folder to save recordings directly to files. An old Presenter-only folder shortcut no longer overrides the recorder's destination.
 
 On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liquid Glass for the whole control panel. The recorder stays a clear primary action within that shared surface. Older tools and systems retain the native popover material.
 
