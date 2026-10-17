@@ -18,7 +18,7 @@ Reviewed October 16, 2026. Local environment: macOS 27.0.1, Apple silicon, Apple
 | Camera-only ownership in Presenter | Capture session adds video inputs; Screenshot owns microphone selection and recording | Source inspected; speech verified in saved movies |
 | Permission and device recovery | Authorization states, device notifications, interrupted-session handling, and retry controls reviewed | Implemented; revoked permissions and physical device changes remain untested |
 | Multiple displays and Spaces | Placement tests cover negative origins, missing displays, small screens, invalid preferences, and no screens; panel collection behavior reviewed | Automated placement verified; physical displays/full-screen/Space transitions remain untested |
-| First-use guidance | Persisted Recording Guide in the native popover | Inspected |
+| First-use guidance | Help reveals the Recording Guide in the native popover | Verified locally |
 
 The optional QuickTime-only AppleScript compiled successfully. Its complete scripted recording workflow remains untested; Presenter does not depend on it.
 
@@ -67,3 +67,15 @@ The owner clarified that presets must be points within one continuous range. The
 All 16 tests passed, including shared-range invariants, safe invalid widths, center/aspect preservation, and migration from the previous preset-plus-percentage preferences. The release app built and passed strict signature verification. Live checks confirmed Circle preset snaps to 160/224/320, one-point movement below Small and above Large, and selection clearing at custom widths. Cutout snapped to 448 and 640; repeated selection retained the active anchor. The native slider layout and point readout were visually inspected.
 
 The saved Circle 150%-of-Large setting exceeded the new range and was clamped to 384 points. After the interaction checks, Circle at that 384-point width was saved, quit, and relaunched; the restored 384 × 384 frame confirmed the new preference round trip. The saved-movie playback check was not repeated for this control-only update.
+
+## Recorder-first panel redesign, 2026-10-17
+
+The owner approved a recorder-first panel with core controls visible and secondary controls collapsed. The title, recorder action, and footer remain outside the scrollable settings. More Controls holds mirroring, border, click-through, position reset, and folder settings; Help reveals the recording guide. Typography uses three semantic sizes: title, controls, and supporting text. The primary action uses native Liquid Glass when both the compiler and operating system support it, with a standard prominent-button fallback.
+
+All 16 existing tests passed after the redesign. The release binary compiled for the macOS 14 deployment target on this Apple silicon Mac with Swift 6.4 and the macOS 27 SDK. The SDK's State macro plugin was unavailable in Command Line Tools; a type alias explicitly selects the existing state property wrapper. The known Command Line Tools linker search-path warnings remain nonfatal.
+
+After the owner quit Presenter, the app bundle was rebuilt, ad-hoc signed, and passed deep strict signature verification. The owner opened the panel for live inspection. Medium snapped Circle to 224 points; one slider increment produced 225 and cleared the preset selection. More Controls expanded; Help revealed the guide while the recorder action and footer stayed visible. Selecting Cutout doubled the current width and disabled White Border. Circle at 384 points and camera off were restored afterward.
+
+The inspection showed excessive blank space in the collapsed panel. Its height was reduced from 600 to 510 points, and scrolling after Help changes was deferred until the view update. The final release app rebuilt and passed strict signature verification. The final visual pass confirmed that both Circle and Cutout core controls fit without scrolling. Help opened and closed with More Controls both collapsed and expanded; closing it returned to the camera settings. The recorder action and footer remained accessible. The app was left at Circle, 384 points, camera off, with Help and More Controls collapsed.
+
+Older operating systems/toolchains, appearance variants, and accessibility preference changes have not been tested for this redesign. Saved-movie playback was not repeated for these panel-only changes. No GitHub push has been made.

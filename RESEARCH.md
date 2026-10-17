@@ -137,3 +137,9 @@ Recommended release sequence:
 - Physical display/device changes, Intel hardware, the macOS 14 minimum, full-screen app combinations, and Space transitions remain open empirical checks.
 
 Source installation guidance was checked against [Apple's Command Line Tools guide](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools), [Swift's macOS installation guide](https://www.swift.org/install/macos/), and [GitHub's cloning guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). The repository has no package dependencies to download during the build.
+
+## Native panel design: researched 2026-10-17
+
+Apple positions Liquid Glass in the functional layer for controls and navigation. Standard components adopt the platform treatment and adapt to system appearance and accessibility settings. The Presenter panel therefore keeps its system popover surface, native controls, semantic text styles, and a single prominent recorder action. Adding separate glass backgrounds to every settings group would add unnecessary layers. [Materials](https://developer.apple.com/design/human-interface-guidelines/materials), [adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass), [custom SwiftUI glass](https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views).
+
+The installed SDK declares `.glassProminent` available on macOS 26 and later. The implementation also guards its use with Swift 6.2 or later so older supported Swift 6 toolchains can use the existing prominent-button style. The macOS 14 deployment target remains unchanged. Local compilation used Swift 6.4 and SDK 27; older-toolchain and minimum-OS runtime checks remain unverified.

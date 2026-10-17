@@ -25,10 +25,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+// Command Line Tools can omit the plugin for the SDK's same-named State macro.
+private typealias ControlState<Value> = SwiftUI.State<Value>
+
 private struct PresenterControls: View {
     @ObservedObject var model: AppModel
     @ObservedObject var camera: CameraController
-    @AppStorage("showRecordingGuide") private var showGuide = true
+    @ControlState private var showMoreControls = false
+    @ControlState private var showGuide = false
 
     init(model: AppModel) {
         self.model = model
@@ -36,64 +40,83 @@ private struct PresenterControls: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 16) {
                 header
                 recording
-                Divider()
-                cameraControls
-                Divider()
-                overlayControls
-                Divider()
-                guide
-                Divider()
-                folderControls
-                HStack {
-                    Text("Camera stops when hidden or on quit.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Quit") { NSApplication.shared.terminate(nil) }
-                        .keyboardShortcut("q")
-                }
             }
             .padding(16)
+
+            Divider()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        cameraControls.id("controls")
+                        Divider()
+                        overlayControls
+                        Divider()
+                        moreControls
+                        if showGuide {
+                            Divider()
+                            guide.id("guide")
+                        }
+                    }
+                    .padding(16)
+                }
+                .onChange(of: showGuide) { _, expanded in
+                    Task { @MainActor in
+                        await Task.yield()
+                        guard showGuide == expanded else { return }
+                        proxy.scrollTo(expanded ? "guide" : "controls", anchor: .top)
+                    }
+                }
+            }
+            Divider()
+            footer.padding(16)
         }
-        .frame(width: 360, height: 650)
+        .font(.body)
+        .frame(width: 360, height: showMoreControls || showGuide ? 650 : 510)
         .onAppear { camera.refreshDevices() }
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        HStack(alignment: .firstTextBaseline) {
             Text("Presenter").font(.title2.weight(.semibold))
-            Label(camera.state.title, systemImage: camera.state.isRunning ? "video.fill" : "video.slash")
+            Spacer()
+            Label(cameraStatus, systemImage: camera.state.isRunning ? "video.fill" : "video.slash")
                 .font(.subheadline)
-                .foregroundStyle(camera.state.isRunning ? .primary : .secondary)
-                .lineLimit(2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
                 .accessibilityLabel("Camera status: \(camera.state.title)")
+                .help(camera.state.title)
+        }
+    }
+
+    private var cameraStatus: String {
+        switch camera.state {
+        case .running: "Camera on"
+        case .starting: "Starting camera…"
+        case .stopped: "Camera off"
+        default: "Camera unavailable"
         }
     }
 
     private var recording: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button(action: model.openRecorder) {
-                Label(model.openingRecorder ? "Preparing recorder…" : "Open Screen Recorder", systemImage: "record.circle")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(model.openingRecorder)
-            .keyboardShortcut("r", modifiers: [.command, .shift])
+            primaryRecorderButton
+                .controlSize(.large)
+                .disabled(model.openingRecorder)
+                .keyboardShortcut("r", modifiers: [.command, .shift])
 
-            Text("Choose Record Entire Screen or Record Selected Portion. Set your microphone and save location in Options, then click Record.")
-                .font(.caption)
+            Text("Choose your microphone in Screenshot Options.")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             if let error = model.error {
-                Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled)
+                Text(error).font(.subheadline).foregroundStyle(.red).textSelection(.enabled)
             }
             if let guidance = camera.state.guidance {
-                Text(guidance).font(.caption).textSelection(.enabled)
+                Text(guidance).font(.subheadline).textSelection(.enabled)
                 HStack {
                     Button("Retry Camera", action: model.retryCamera)
                     if camera.state == .denied {
@@ -103,6 +126,27 @@ private struct PresenterControls: View {
                 Button("Open Recorder Without Camera", action: model.openRecorderWithoutCamera)
                     .disabled(model.openingRecorder)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var primaryRecorderButton: some View {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) {
+            recorderButton.buttonStyle(.glassProminent)
+        } else {
+            recorderButton.buttonStyle(.borderedProminent)
+        }
+        #else
+        recorderButton.buttonStyle(.borderedProminent)
+        #endif
+    }
+
+    private var recorderButton: some View {
+        Button(action: model.openRecorder) {
+            Label(model.openingRecorder ? "Preparing recorder…" : "Open Screen Recorder", systemImage: "record.circle")
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity, minHeight: 24)
         }
     }
 
@@ -117,26 +161,25 @@ private struct PresenterControls: View {
                 ForEach(camera.choices) { choice in Text(choice.name).tag(choice.id) }
             }
             .disabled(camera.choices.isEmpty)
-            Toggle("Mirror Camera", isOn: $model.mirrored)
         }
     }
 
     private var overlayControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Overlay").font(.headline)
+            Text("Appearance").font(.body.weight(.semibold))
             Picker("Style", selection: $model.shape) {
                 ForEach(OverlayShape.allCases) { shape in Text(shape.rawValue).tag(shape) }
             }
             .pickerStyle(.segmented)
             if model.shape == .cutout {
-                Text("Removes the camera background on this Mac. Borders apply to Circle and Rounded.")
-                    .font(.caption)
+                Text("Removes your camera background on this Mac.")
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                 if let error = camera.cutoutError {
-                    Text(error).font(.caption).foregroundStyle(.red)
+                    Text(error).font(.subheadline).foregroundStyle(.red)
                     Button("Retry Cutout", action: model.retryCamera)
                 } else if model.overlayVisible, camera.state.isRunning, !camera.isCutoutReady {
-                    Text("Removing background…").font(.caption).foregroundStyle(.secondary)
+                    Text("Removing background…").font(.subheadline).foregroundStyle(.secondary)
                 }
             }
             VStack(alignment: .leading, spacing: 5) {
@@ -144,10 +187,10 @@ private struct PresenterControls: View {
                     Text("Size")
                     Spacer()
                     Text("\(Int(model.overlayWidth.rounded())) pt")
+                        .font(.subheadline)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
-                .font(.caption)
                 Slider(value: $model.overlayWidth, in: model.sizeRange)
                     .accessibilityLabel("Camera size")
                     .accessibilityValue("\(Int(model.overlayWidth.rounded())) points")
@@ -172,22 +215,37 @@ private struct PresenterControls: View {
                     }
                 }
             }
-            Toggle("White Border", isOn: $model.showsBorder)
-                .disabled(model.shape == .cutout)
-            Toggle("Click Through Camera", isOn: $model.clickThrough)
-            if model.clickThrough {
-                Text("Turn this off to drag the camera. These controls stay available in the menu bar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        }
+    }
+
+    private var moreControls: some View {
+        DisclosureGroup(isExpanded: $showMoreControls) {
+            VStack(alignment: .leading, spacing: 12) {
+                Toggle("Mirror Camera", isOn: $model.mirrored)
+                Toggle("White Border", isOn: $model.showsBorder)
+                    .disabled(model.shape == .cutout)
+                    .help("Borders apply to Circle and Rounded styles.")
+                Toggle("Click Through Camera", isOn: $model.clickThrough)
+                if model.clickThrough {
+                    Text("Turn this off to drag the camera. These controls stay available in the menu bar.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Button("Reset Camera Position", action: model.resetPosition)
+                    .help("Move the camera onto the main display and allow dragging.")
+                Divider()
+                folderControls
             }
-            Button("Reset Camera Position", action: model.resetPosition)
-                .help("Move the camera onto the main display and allow dragging.")
+            .padding(.top, 12)
+        } label: {
+            Text("More Controls").font(.body.weight(.semibold))
         }
     }
 
     private var guide: some View {
-        DisclosureGroup("Recording Guide", isExpanded: $showGuide) {
-            VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Recording Guide").font(.body.weight(.semibold))
+            VStack(alignment: .leading, spacing: 10) {
                 Text("1. Show the camera and allow camera access when macOS asks. Choose Cutout to remove the background, then drag the preview into place.")
                 Text("2. Open Screen Recorder. Choose Record Entire Screen or Record Selected Portion and include the camera. Single-window recording may leave it out.")
                 Text("3. In Options, select a microphone and Save to folder. Allow microphone access if macOS asks, then click Record.")
@@ -195,32 +253,42 @@ private struct PresenterControls: View {
                 Text("Presenter cannot detect when Screenshot stops. Hide the camera when finished to release it.")
                     .foregroundStyle(.secondary)
             }
-            .font(.caption)
-            .padding(.top, 6)
+            .font(.subheadline)
             .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var folderControls: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Folder shortcut · set Save to separately in Screenshot Options.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            HStack {
-                Button("Open Recordings Folder", action: model.openRecordingsFolder)
-                Spacer()
-                Button(action: model.chooseRecordingsFolder) {
-                    Image(systemName: "folder.badge.gearshape")
-                }
-                .accessibilityLabel("Choose recordings folder shortcut")
+            Button("Choose Recordings Folder…", action: model.chooseRecordingsFolder)
                 .help("Choose the same Save to folder in Screenshot Options.")
-            }
+            Text("This shortcut does not change Screenshot’s Save to setting.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             Text(model.folderPath)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .help(model.folderPath)
         }
+    }
+
+    private var footer: some View {
+        HStack(spacing: 16) {
+            Button(action: model.openRecordingsFolder) {
+                Label("Recordings", systemImage: "folder")
+            }
+            .accessibilityLabel("Open Recordings Folder")
+            Spacer()
+            Button { showGuide.toggle() } label: {
+                Label("Help", systemImage: "questionmark.circle")
+            }
+            .foregroundStyle(showGuide ? Color.accentColor : Color.primary)
+            .accessibilityValue(showGuide ? "Guide shown" : "Guide hidden")
+            Button("Quit") { NSApplication.shared.terminate(nil) }
+                .keyboardShortcut("q")
+        }
+        .buttonStyle(.borderless)
     }
 }

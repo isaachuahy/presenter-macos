@@ -49,8 +49,8 @@ The installer creates `~/Applications/Presenter.app`. It refuses to replace an u
 ## Record
 
 1. Turn on **Show Camera** and allow Presenter to use the camera.
-2. Choose a camera, **Overlay Style → Cutout**, and a size. Circle and Rounded are also available.
-3. Drag the overlay into position. Turn off **Click Through Camera** before dragging.
+2. Choose a camera, **Appearance → Cutout**, and a size. Circle and Rounded are also available.
+3. Drag the overlay into position. Turn off **More Controls → Click Through Camera** before dragging.
 4. Click **Open Screen Recorder**.
 5. Choose **Record Entire Screen** or **Record Selected Portion** in Screenshot. Include the overlay in the selected display or region.
 6. Select your microphone and **Save to** folder under **Options**.
@@ -63,7 +63,11 @@ Presenter opens the native recorder; you start and stop recording there. It does
 
 Use the **Size** slider for one continuous range. **Small**, **Medium**, and **Large** snap the slider to fixed preset sizes; between those points, no preset is selected. The range extends 20% below Small and 20% above Large. For Cutout, that is 256–768 points wide, with presets at 320, 448, and 640. Your size is saved across launches, and existing preset-relative settings carry over within the new range.
 
-**Open Recordings Folder** is a Finder shortcut, initially Desktop. Its folder button changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
+The panel keeps **Open Screen Recorder** at the top, with camera, style, and size controls below. **More Controls** holds mirroring, border, click-through, position reset, and folder settings. **Help** in the footer opens the recording guide. The recorder action and footer stay visible while expanded settings scroll.
+
+**Recordings** in the footer is a Finder shortcut, initially Desktop. **More Controls → Choose Recordings Folder…** changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
+
+On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liquid Glass recorder button. Older tools and systems retain a standard prominent button.
 
 ## Update or uninstall
 
