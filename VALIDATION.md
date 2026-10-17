@@ -78,4 +78,12 @@ After the owner quit Presenter, the app bundle was rebuilt, ad-hoc signed, and p
 
 The inspection showed excessive blank space in the collapsed panel. Its height was reduced from 600 to 510 points, and scrolling after Help changes was deferred until the view update. The final release app rebuilt and passed strict signature verification. The final visual pass confirmed that both Circle and Cutout core controls fit without scrolling. Help opened and closed with More Controls both collapsed and expanded; closing it returned to the camera settings. The recorder action and footer remained accessible. The app was left at Circle, 384 points, camera off, with Help and More Controls collapsed.
 
-Older operating systems/toolchains, appearance variants, and accessibility preference changes have not been tested for this redesign. Saved-movie playback was not repeated for these panel-only changes. No GitHub push has been made.
+Older operating systems/toolchains and accessibility preference changes remain untested for this redesign. Saved-movie playback was not repeated for these panel-only changes. The owner subsequently approved publishing the redesign as `a98e305`.
+
+## Appearance and outer-window sizing, 2026-10-17
+
+The reported transparent bands were reproduced: after expansion, the outer window could retain its 650-point height around the centered 510-point collapsed content. The scene now uses `.windowResizability(.contentSize)` so its window follows the content dimensions. Apple documents this strategy as deriving both minimum and maximum window sizes from the content. [WindowResizability](https://developer.apple.com/documentation/swiftui/windowresizability).
+
+The release app rebuilt, was ad-hoc signed, and passed deep strict signature verification. Live inspection confirmed that More Controls and Help expand and collapse without leaving the outer bands. Explicit Light and Dark system appearances were compared, including Circle and Cutout core controls, expanded settings, disabled White Border, and the Help guide. Typography, spacing, preset selection semantics, and pinned actions remained consistent. These were visual and accessibility-tree checks, not a measured contrast certification. No custom colors or appearance override were added. The existing 16-test result covers the unchanged sizing and compositing logic; the test suite was not rerun for this scene-only modifier.
+
+The original Auto appearance was restored and confirmed in System Settings. Presenter was left at Circle, 384 points, camera off, with Help and More Controls collapsed. This follow-up has not been pushed to GitHub.

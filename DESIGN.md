@@ -27,7 +27,7 @@ The camera panel's centered status message uses `NSFont.systemFont(ofSize: 13, w
 
 ## Layout
 
-The popover is 360 × 510 points with core controls visible. Expanding More Controls or Help increases its height to 650 points. The header, recorder action, and footer remain fixed while the middle settings area scrolls. Outer padding and spacing between sections are 16 points. Dividers separate groups; internal spacing ranges from 5 to 12 points.
+The popover is 360 × 510 points with core controls visible. Expanding More Controls or Help increases its height to 650 points. The scene uses `.windowResizability(.contentSize)` so its outer window follows those dimensions when controls collapse, without leaving transparent bands around the content. The header, recorder action, and footer remain fixed while the middle settings area scrolls. Outer padding and spacing between sections are 16 points. Dividers separate groups; internal spacing ranges from 5 to 12 points.
 
 Preserve the implemented reading order:
 

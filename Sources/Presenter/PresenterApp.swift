@@ -10,6 +10,7 @@ struct PresenterApp: App {
             PresenterControls(model: model)
         }
         .menuBarExtraStyle(.window)
+        .windowResizability(.contentSize)
     }
 }
 
