@@ -51,3 +51,11 @@ The user requested source-based GitHub installation for now. Developer ID signin
 Cutout preset widths increased from 160/224/320 to 320/448/640 points. Heights remain 75% of width. The rendered-image limit increased to 1280 pixels to cover the largest preset on a Retina display.
 
 All 12 existing tests passed after the change. The release app rebuilt and passed strict signature verification. Presenter was restarted, and its live Large Cutout was visually inspected; the persisted frame confirmed a 640 × 480-point panel. The saved-movie playback check was not repeated for this sizing update.
+
+## Fine-size slider, 2026-10-17
+
+Small, Medium, and Large remain quick presets. A native slider adjusts the selected preset from 50% to 150% in 1% steps, with a percentage readout and Reset button. Choosing another preset resets the adjustment to 100%. The adjustment is stored separately from the preset and safely normalized when preferences load.
+
+All 14 tests passed, including fine-resize center/aspect preservation and five invalid or out-of-range adjustment cases. The release app rebuilt and passed strict signature verification.
+
+After the owner opened the menu-bar panel, native accessibility actions moved the slider in 1% steps. Large at 125% produced an 800 × 600-point panel. Choosing Medium returned the slider to 100%; the Reset button independently restored 100% after another adjustment. The native layout and percentage readout were visually inspected. Presenter was then quit and relaunched with Large at 110%; its restored 704 × 528-point frame and saved 1.1 adjustment confirmed persistence. The running app remains at that tested Large 110% setting. The saved-movie playback check was not repeated for this sizing-control update.

@@ -143,6 +143,24 @@ private struct PresenterControls: View {
                 ForEach(OverlaySize.allCases) { size in Text(size.rawValue).tag(size) }
             }
             .pickerStyle(.segmented)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text("Fine size")
+                    Spacer()
+                    Text(model.sizeScale, format: .percent.precision(.fractionLength(0)))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                    Button("Reset") { model.sizeScale = 1 }
+                        .buttonStyle(.borderless)
+                        .disabled(model.sizeScale == 1)
+                        .accessibilityLabel("Reset size adjustment")
+                }
+                .font(.caption)
+                Slider(value: $model.sizeScale, in: OverlaySize.scaleRange, step: 0.01)
+                    .accessibilityLabel("Camera size adjustment")
+                    .accessibilityValue(Text(model.sizeScale, format: .percent.precision(.fractionLength(0))))
+                    .help("Fine-tunes the selected preset. Choosing another preset resets this to 100%.")
+            }
             Toggle("White Border", isOn: $model.showsBorder)
                 .disabled(model.shape == .cutout)
             Toggle("Click Through Camera", isOn: $model.clickThrough)

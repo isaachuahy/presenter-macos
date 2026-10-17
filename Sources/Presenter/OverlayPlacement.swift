@@ -15,13 +15,21 @@ enum OverlaySize: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    func dimensions(for shape: OverlayShape) -> CGSize {
+    static let scaleRange = 0.5...1.5
+
+    static func clampedScale(_ value: Double) -> Double {
+        guard value.isFinite else { return 1 }
+        return min(max(value, scaleRange.lowerBound), scaleRange.upperBound)
+    }
+
+    func dimensions(for shape: OverlayShape, scale: Double = 1) -> CGSize {
         let baseWidth: CGFloat = switch self {
         case .small: 160
         case .medium: 224
         case .large: 320
         }
-        let width = shape == .cutout ? baseWidth * 2 : baseWidth
+        let presetWidth = shape == .cutout ? baseWidth * 2 : baseWidth
+        let width = presetWidth * CGFloat(Self.clampedScale(scale))
         return CGSize(width: width, height: shape == .circle ? width : width * 0.75)
     }
 }

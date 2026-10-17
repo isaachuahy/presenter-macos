@@ -115,6 +115,7 @@ final class OverlayController: NSObject, NSWindowDelegate {
     private let preview: CameraPreviewView
     private let defaults: UserDefaults
     private var size: OverlaySize = .medium
+    private var sizeScale = 1.0
     private var shape: OverlayShape = .circle
 
     init(session: AVCaptureSession, defaults: UserDefaults = .standard) {
@@ -141,12 +142,14 @@ final class OverlayController: NSObject, NSWindowDelegate {
     }
 
     func configure(
-        shape: OverlayShape, size: OverlaySize, border: Bool,
+        shape: OverlayShape, size: OverlaySize, sizeScale: Double, border: Bool,
         mirrored: Bool, clickThrough: Bool, state: CameraState, cutoutError: String?
     ) {
-        let dimensionsChanged = self.shape != shape || self.size != size || panel.frame.isEmpty
+        let dimensionsChanged = self.shape != shape || self.size != size
+            || self.sizeScale != sizeScale || panel.frame.isEmpty
         self.shape = shape
         self.size = size
+        self.sizeScale = sizeScale
         preview.configure(shape: shape, border: border, mirrored: mirrored, state: state, cutoutError: cutoutError)
         panel.ignoresMouseEvents = clickThrough
         panel.hasShadow = shape != .cutout
@@ -173,7 +176,7 @@ final class OverlayController: NSObject, NSWindowDelegate {
         let preferred = reset ? nil : (panel.frame.isEmpty ? saved : panel.frame)
         let screens = NSScreen.screens.map(\.visibleFrame)
         let frame = OverlayPlacement.frame(
-            preferred: preferred, size: size.dimensions(for: shape), screens: screens
+            preferred: preferred, size: size.dimensions(for: shape, scale: sizeScale), screens: screens
         )
         panel.setFrame(frame, display: true)
         savePlacement()

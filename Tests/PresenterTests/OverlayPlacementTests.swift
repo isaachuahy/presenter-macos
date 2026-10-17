@@ -18,6 +18,26 @@ struct OverlayPlacementTests {
         #expect(frame.size == CGSize(width: 320, height: 240))
     }
 
+    @Test func fineAdjustmentPreservesCutoutCenterAndAspectRatio() {
+        let saved = CGRect(x: 300, y: 200, width: 640, height: 480)
+        let size = OverlaySize.medium.dimensions(for: .cutout, scale: 1.25)
+        let frame = OverlayPlacement.frame(preferred: saved, size: size, screens: [desktop])
+        #expect(frame.size == CGSize(width: 560, height: 420))
+        #expect(frame.midX == saved.midX)
+        #expect(frame.midY == saved.midY)
+        #expect(desktop.contains(frame))
+    }
+
+    @Test(arguments: [Double.nan, Double.infinity, -Double.infinity, -2, 4])
+    func invalidAdjustmentProducesSafeFrame(_ scale: Double) {
+        let size = OverlaySize.large.dimensions(for: .cutout, scale: scale)
+        let frame = OverlayPlacement.frame(preferred: nil, size: size, screens: [desktop])
+        #expect(frame.width.isFinite && frame.height.isFinite)
+        #expect((320...960).contains(frame.width))
+        #expect(frame.height == frame.width * 0.75)
+        #expect(desktop.contains(frame))
+    }
+
     @Test func negativeCoordinatesStayOnSecondaryDisplay() {
         let secondary = CGRect(x: -1920, y: -200, width: 1920, height: 1080)
         let saved = CGRect(x: -1800, y: -100, width: 224, height: 224)

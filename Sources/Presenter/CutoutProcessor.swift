@@ -78,7 +78,7 @@ final class CutoutProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
                     report(.failure("The person mask could not be aligned with this camera."))
                     return
                 }
-                // Bound texture size while covering the largest overlay on a Retina display.
+                // Keep texture memory bounded when the overlay is enlarged.
                 let scale = min(1, 1280 / max(composite.extent.width, composite.extent.height))
                 let image = composite.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
                 guard let rendered = context.createCGImage(

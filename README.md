@@ -61,6 +61,8 @@ The installer creates `~/Applications/Presenter.app`. It refuses to replace an u
 
 Presenter opens the native recorder; you start and stop recording there. It does not detect recording status. The camera stays active until hidden or Presenter quits, pauses during Mac sleep, and resumes on wake when enabled. Presenter captures no microphone audio itself.
 
+Keep Small, Medium, and Large as quick size choices, then use **Fine size** to adjust the selected preset from 50% to 150%. **Reset** restores 100%; choosing another preset also resets the adjustment. Your adjustment is saved across launches.
+
 **Open Recordings Folder** is a Finder shortcut, initially Desktop. Its folder button changes only that shortcut. Set the actual recording destination separately in Screenshot → Options → Save to.
 
 ## Update or uninstall
@@ -79,7 +81,7 @@ Build without installing:
 zsh build.sh
 ```
 
-Run the 12 placement and person-mask tests:
+Run the 14 placement and person-mask tests:
 
 ```sh
 zsh build.sh test

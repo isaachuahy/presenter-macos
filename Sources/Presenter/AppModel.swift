@@ -30,7 +30,12 @@ final class AppModel: ObservableObject {
         }
     }
     @Published var shape: OverlayShape { didSet { persistOverlay() } }
-    @Published var size: OverlaySize { didSet { persistOverlay() } }
+    @Published var size: OverlaySize {
+        didSet {
+            if sizeScale != 1 { sizeScale = 1 } else { persistOverlay() }
+        }
+    }
+    @Published var sizeScale: Double { didSet { persistOverlay() } }
     @Published var mirrored: Bool { didSet { persistOverlay() } }
     @Published var showsBorder: Bool { didSet { persistOverlay() } }
     @Published var clickThrough: Bool { didSet { persistOverlay() } }
@@ -45,6 +50,7 @@ final class AppModel: ObservableObject {
         overlayVisible = defaults.bool(forKey: "overlayVisible")
         shape = defaults.string(forKey: "overlayShape").flatMap(OverlayShape.init(rawValue:)) ?? .circle
         size = defaults.string(forKey: "overlaySize").flatMap(OverlaySize.init(rawValue:)) ?? .medium
+        sizeScale = OverlaySize.clampedScale(defaults.object(forKey: "overlaySizeScale") as? Double ?? 1)
         mirrored = defaults.object(forKey: "mirrored") as? Bool ?? true
         showsBorder = defaults.object(forKey: "showsBorder") as? Bool ?? true
         clickThrough = defaults.bool(forKey: "clickThrough")
@@ -215,6 +221,7 @@ final class AppModel: ObservableObject {
     private func persistOverlay() {
         defaults.set(shape.rawValue, forKey: "overlayShape")
         defaults.set(size.rawValue, forKey: "overlaySize")
+        defaults.set(sizeScale, forKey: "overlaySizeScale")
         defaults.set(mirrored, forKey: "mirrored")
         defaults.set(showsBorder, forKey: "showsBorder")
         defaults.set(clickThrough, forKey: "clickThrough")
@@ -225,7 +232,7 @@ final class AppModel: ObservableObject {
     private func updateOverlay() {
         camera.setCutoutEnabled(shape == .cutout)
         overlay.configure(
-            shape: shape, size: size, border: showsBorder, mirrored: mirrored,
+            shape: shape, size: size, sizeScale: sizeScale, border: showsBorder, mirrored: mirrored,
             clickThrough: clickThrough, state: camera.state, cutoutError: camera.cutoutError
         )
     }
