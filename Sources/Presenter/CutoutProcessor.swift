@@ -79,7 +79,7 @@ final class CutoutProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
                     return
                 }
                 // Bound texture size while covering the largest overlay on a Retina display.
-                let scale = min(1, 960 / max(composite.extent.width, composite.extent.height))
+                let scale = min(1, 1280 / max(composite.extent.width, composite.extent.height))
                 let image = composite.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
                 guard let rendered = context.createCGImage(
                     image, from: image.extent, format: .RGBA8, colorSpace: colorSpace

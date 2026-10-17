@@ -45,3 +45,9 @@ The source repository uses `main`. The owner approved public repository creation
 ## Distribution scope
 
 The user requested source-based GitHub installation for now. Developer ID signing, universal prebuilt binaries, notarization, and a downloadable executable release are deferred. Intel Macs and the macOS 14 deployment minimum have not been tested. Do not extend the verified local result to every supported Mac.
+
+## Cutout sizing update, 2026-10-17
+
+Cutout preset widths increased from 160/224/320 to 320/448/640 points. Heights remain 75% of width. The rendered-image limit increased to 1280 pixels to cover the largest preset on a Retina display.
+
+All 12 existing tests passed after the change. The release app rebuilt and passed strict signature verification. Presenter was restarted, and its live Large Cutout was visually inspected; the persisted frame confirmed a 640 × 480-point panel. The saved-movie playback check was not repeated for this sizing update.

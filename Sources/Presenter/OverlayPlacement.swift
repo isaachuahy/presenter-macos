@@ -16,11 +16,12 @@ enum OverlaySize: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     func dimensions(for shape: OverlayShape) -> CGSize {
-        let width: CGFloat = switch self {
+        let baseWidth: CGFloat = switch self {
         case .small: 160
         case .medium: 224
         case .large: 320
         }
+        let width = shape == .cutout ? baseWidth * 2 : baseWidth
         return CGSize(width: width, height: shape == .circle ? width : width * 0.75)
     }
 }

@@ -39,7 +39,7 @@ Preserve the implemented reading order:
 6. Folder shortcut.
 7. Quit.
 
-The camera panel has Small, Medium, and Large widths of 160, 224, and 320 points. Circle height equals width; Rounded and Cutout height is 75% of width. Placement starts 24 points from the visible screen's lower-right corner. Saved positions are clamped to connected visible screens, and panel dimensions shrink if necessary to fit.
+Circle and Rounded have Small, Medium, and Large widths of 160, 224, and 320 points. Cutout uses widths of 320, 448, and 640 points so the person is easier to see against the desktop. Circle height equals width; Rounded and Cutout height is 75% of width. Placement starts 24 points from the visible screen's lower-right corner. Saved positions are clamped to connected visible screens, and panel dimensions shrink if necessary to fit.
 
 ## Elevation & Depth
 
