@@ -34,7 +34,7 @@ enum PersonMatte {
 // Vision's temporal request, context, and callback are confined to this delegate's serial frame queue.
 final class CutoutProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     let queue = DispatchQueue(label: "Presenter.cutout", qos: .userInitiated)
-    private let context = CIContext(options: [.cacheIntermediates: false])
+    private var context: CIContext?
     private let colorSpace = CGColorSpaceCreateDeviceRGB()
     private var request: VNGeneratePersonSegmentationRequest?
     private var report: (@Sendable (CutoutResult) -> Void)?
@@ -42,29 +42,37 @@ final class CutoutProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
     /// Drains earlier frames and resets temporal state. Call from the session queue, never the frame queue.
     func configure(enabled: Bool, report: @escaping @Sendable (CutoutResult) -> Void) {
         queue.sync { [self] in
-            self.report = enabled ? report : nil
             if enabled {
+                self.report = report
                 let request = VNGeneratePersonSegmentationRequest()
                 request.qualityLevel = .balanced
                 request.outputPixelFormat = kCVPixelFormatType_OneComponent8
                 self.request = request
             } else {
-                request = nil
+                releaseResources()
             }
         }
     }
 
+    /// Releases segmentation and rendering resources after earlier frames finish.
     func suspend() {
-        queue.async { [self] in
-            request = nil
-            report = nil
-        }
+        queue.async { [self] in releaseResources() }
+    }
+
+    private func releaseResources() {
+        request = nil
+        report = nil
+        // Hiding the camera should release GPU caches as well as the capture session.
+        context?.clearCaches()
+        context = nil
     }
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let request, let report,
               let buffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         autoreleasepool {
+            let context = self.context ?? CIContext(options: [.cacheIntermediates: false])
+            self.context = context
             do {
                 // Mac webcam buffers are upright; mirroring happens once on the completed display layer.
                 try VNImageRequestHandler(cvPixelBuffer: buffer, orientation: .up).perform([request])

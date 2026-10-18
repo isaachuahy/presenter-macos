@@ -39,7 +39,15 @@ check_destination() {
 }
 
 check_destination
-zsh build.sh
+if [[ -n "${PRESENTER_BUILD_ROOT:-}" ]]; then
+    zsh build.sh
+else
+    (
+        temporary_build=$(mktemp -d "${TMPDIR:-/tmp}/Presenter-build.XXXXXX")
+        trap 'rm -rf -- "$temporary_build"' EXIT
+        PRESENTER_BUILD_ROOT="$temporary_build" zsh build.sh
+    )
+fi
 mkdir -p -- "$install_directory"
 staging=$(mktemp -d "$install_directory/.Presenter-install.XXXXXX")
 cleanup() {

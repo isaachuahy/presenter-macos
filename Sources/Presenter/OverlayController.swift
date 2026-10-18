@@ -3,6 +3,7 @@ import AppKit
 
 @MainActor
 private final class CameraPreviewView: NSView {
+    private let session: AVCaptureSession
     private let preview: AVCaptureVideoPreviewLayer
     private let person = CALayer()
     private let border = CAShapeLayer()
@@ -15,7 +16,8 @@ private final class CameraPreviewView: NSView {
     override var mouseDownCanMoveWindow: Bool { true }
 
     init(session: AVCaptureSession) {
-        preview = AVCaptureVideoPreviewLayer(session: session)
+        self.session = session
+        preview = AVCaptureVideoPreviewLayer()
         super.init(frame: .zero)
         wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
@@ -78,6 +80,9 @@ private final class CameraPreviewView: NSView {
         CATransaction.setDisableActions(true)
         person.setAffineTransform(CGAffineTransform(scaleX: mirrored ? -1 : 1, y: 1))
         CATransaction.commit()
+        // Cutout supplies its own frames; a hidden native preview still consumes capture resources.
+        let previewSession = shape != .cutout && state.isRunning ? session : nil
+        if preview.session !== previewSession { preview.session = previewSession }
         if let connection = preview.connection, connection.isVideoMirroringSupported {
             connection.automaticallyAdjustsVideoMirroring = false
             connection.isVideoMirrored = mirrored

@@ -44,7 +44,7 @@ Requires **macOS 14 or later**, a camera, and **Swift 6 or later** from Apple's 
 
 You can also download the source using GitHub's **Code → Download ZIP**, extract it, open Terminal in the extracted folder, and run `zsh install.sh`.
 
-The installer creates `~/Applications/Presenter.app`. It refuses to replace an unrelated app or update Presenter while it is running. Build files stay in the checkout's ignored `.build/` folder. The build signs the app locally with an ad-hoc signature. This setup is for building on your own Mac; it does not provide a notarized binary download. If macOS requests camera permission again after rebuilding, allow it in System Settings → Privacy & Security → Camera.
+The installer creates `~/Applications/Presenter.app`. It refuses to replace an unrelated app or update Presenter while it is running. By default, installation uses a temporary build directory and removes it afterward. The build removes debug and local symbols from the app, then signs it locally with an ad-hoc signature. This setup is for building on your own Mac; it does not provide a notarized binary download. If macOS requests camera permission again after rebuilding, allow it in System Settings → Privacy & Security → Camera.
 
 ## Record
 
@@ -87,7 +87,7 @@ Build without installing:
 zsh build.sh
 ```
 
-Run the 16 placement and person-mask tests:
+Run the 23 placement, person-mask, and recording-destination tests:
 
 ```sh
 zsh build.sh test
@@ -100,7 +100,9 @@ zsh install.sh --no-open
 PRESENTER_INSTALL_DIR="$PWD/local-apps" zsh install.sh --no-open
 ```
 
-`PRESENTER_BUILD_ROOT` optionally changes the build/cache directory. Neither script uploads files or changes macOS security settings.
+Direct `build.sh` commands retain build files in the ignored `.build/` directory for faster development. `PRESENTER_BUILD_ROOT` selects a different build/cache directory; setting it also tells the installer to retain that directory. Neither script uploads files or changes macOS security settings.
+
+Turn off **Show Camera** when finished to stop capture and release Cutout rendering resources. Cutout connects only its processed image pipeline; Circle and Rounded use the native camera preview. Camera resolution and segmentation quality are unchanged.
 
 ## Recovery
 
@@ -134,7 +136,8 @@ Intel Macs, macOS 14, physical multi-display/device changes, and every full-scre
 - `CutoutProcessor.swift`: local Vision person segmentation and transparent Core Image compositing.
 - `OverlayController.swift`: floating panel, mirroring, style, dragging, and click-through.
 - `OverlayPlacement.swift`: placement and display-boundary rules.
-- `Tests/PresenterTests/`: placement and person-mask tests.
+- `RecordingDestination.swift`: Screenshot save-location preferences and validation.
+- `Tests/PresenterTests/`: placement, person-mask, and recording-destination tests.
 - `RESEARCH.md`, `PRODUCT.md`, and `DESIGN.md`: API evidence, scope, and native interface decisions.
 
 `QuickTimePreview.applescript` is an optional baseline: open it in Script Editor, run it, enable QuickTime's View → Float on Top manually, then continue to screen recording. Presenter does not require it.
