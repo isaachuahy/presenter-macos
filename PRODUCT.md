@@ -19,6 +19,10 @@ The user clarified that a true person cutout is required: retain the person and 
 - No main window opens at launch. Guidance lives inside the menu-bar popover.
 - Implementation proceeds one source file at a time. The owner approved publishing the verified source to `isaachuahy/presenter-macos` after local installation checks passed.
 - Distribution starts with a source-based GitHub checkout and one local install command. Prebuilt downloads and notarization are deferred at the user's request.
+- App Sandbox and Hardened Runtime enforce the safety boundary. The app has camera and user-selected read-only file access, with no network, microphone, automation, or broad file-access entitlement.
+- Screenshot controls its own microphone and save destination. The owner chose sandbox containment over automatic save-location synchronization; Presenter keeps an explicit, read-only Finder shortcut instead.
+- The camera starts off at every app launch. Sleep turns it off; wake resumption is an opt-in setting and applies only when the camera was on before sleep.
+- Helper launches are limited to verified Apple-signed installations in protected system locations. Recordings reveals folders through Finder and rejects application bundles and other packages.
 
 ## Interface direction
 

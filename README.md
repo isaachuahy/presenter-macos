@@ -4,6 +4,8 @@ A small macOS menu-bar utility for recording your screen with a live camera over
 
 Presenter uses Apple's Screenshot recorder, AVFoundation, Vision, and Core Image. Camera processing stays on your Mac. There are no external packages, subscriptions, or runtime network services.
 
+The packaged app enables App Sandbox and Hardened Runtime. Its only access entitlements are camera capture and read-only access to folders explicitly selected by the user. It has no network, microphone, automation, or broad file-access entitlement. Screenshot and System Settings are opened only from their protected system locations after checking Apple's signature and signing identifier.
+
 ## Install from source
 
 Requires **macOS 14 or later**, a camera, and **Swift 6 or later** from Apple's Command Line Tools or Xcode. The installer builds for your Mac's processor; it needs no developer account or admin access to install Presenter.
@@ -44,7 +46,7 @@ Requires **macOS 14 or later**, a camera, and **Swift 6 or later** from Apple's 
 
 You can also download the source using GitHub's **Code → Download ZIP**, extract it, open Terminal in the extracted folder, and run `zsh install.sh`.
 
-The installer creates `~/Applications/Presenter.app`. It refuses to replace an unrelated app or update Presenter while it is running. By default, installation uses a temporary build directory and removes it afterward. The build removes debug and local symbols from the app, then signs it locally with an ad-hoc signature. This setup is for building on your own Mac; it does not provide a notarized binary download. If macOS requests camera permission again after rebuilding, allow it in System Settings → Privacy & Security → Camera.
+The installer creates `~/Applications/Presenter.app`. It refuses to replace an unrelated app or update Presenter while it is running. By default, installation uses a temporary build directory and removes it afterward. The build removes debug and local symbols, then signs the sandboxed app locally with an ad-hoc signature and Hardened Runtime. This setup is for building on your own Mac; it does not provide a notarized binary download or a verified publisher identity. Do not disable Gatekeeper or remove quarantine protections to install it. If macOS requests camera permission again after rebuilding, allow it in System Settings → Privacy & Security → Camera.
 
 ## Record
 
@@ -59,15 +61,15 @@ The installer creates `~/Applications/Presenter.app`. It refuses to replace an u
 9. Play the saved movie to check the screen, camera movement, and speech.
 10. Hide the camera or quit Presenter when finished.
 
-Presenter opens the native recorder; you start and stop recording there. It does not detect recording status. The camera stays active until hidden or Presenter quits, pauses during Mac sleep, and resumes on wake when enabled. Presenter captures no microphone audio itself.
+Presenter opens the native recorder; you start and stop recording there. It does not detect recording status, so stopping a recording leaves the camera active until hidden or Presenter quits. The camera starts off each time Presenter launches and turns off during Mac sleep. **More Controls → Resume Camera After Sleep** is off by default; when enabled, it resumes only a camera that was on before sleep. Presenter captures no microphone audio itself.
 
 Use the **Size** slider for one continuous range. **Small**, **Medium**, and **Large** snap the slider to fixed preset sizes; between those points, no preset is selected. The range extends 20% below Small and 20% above Large. For Cutout, that is 256–768 points wide, with presets at 320, 448, and 640. Your size is saved across launches, and existing preset-relative settings carry over within the new range.
 
-The panel keeps **Open Screen Recorder** at the top, with camera, style, and size controls below. **More Controls** holds mirroring, border, click-through, position reset, and folder settings. **Help** in the footer opens the recording guide. The recorder action and footer stay visible while expanded settings scroll.
+The panel keeps **Open Screen Recorder** at the top, with camera, style, and size controls below. **More Controls** holds mirroring, wake resumption, border, click-through, position reset, and folder settings. **Help** in the footer opens the recording guide. The recorder action and footer stay visible while expanded settings scroll.
 
-**More Controls → Change Save Location…** sets Screenshot's shared save folder. **Recordings** in the footer opens the current recording folder. Changes made in **Screenshot → Options → Save to** are picked up when Presenter becomes active or you use a folder action. Apply changes before opening the recorder; an already-open Screenshot toolbar may retain its previous selection.
+Set the recording destination in **Screenshot → Options → Save to**. **More Controls → Choose Recordings Shortcut…** selects a separate folder that **Recordings** reveals in Finder. Clicking Recordings before choosing a shortcut opens the folder picker. Applications and other file packages cannot be selected as the shortcut.
 
-Screenshot's custom folder is also used for still screenshots saved as files. If Screenshot is set to open recordings in QuickTime Player or Mail, Presenter displays that output mode instead of a misleading folder shortcut. Choose a folder to save recordings directly to files. An old Presenter-only folder shortcut no longer overrides the recorder's destination.
+Presenter saves read-only access to that explicit selection using a security-scoped bookmark. It does not read or change Screenshot's preferences. If you change Screenshot's destination, choose the matching shortcut folder again in Presenter. This replaces the previous automatic save-location synchronization so Presenter can stay inside App Sandbox. Re-select the shortcut after upgrading from an older version.
 
 On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liquid Glass for the whole control panel. The recorder stays a clear primary action within that shared surface. Older tools and systems retain the native popover material.
 
@@ -77,7 +79,7 @@ On macOS 26 or later, builds made with Swift 6.2 or later use Apple's native Liq
 2. Run `git pull --ff-only` in your checkout, or download and extract the updated source ZIP.
 3. Run `zsh install.sh` again.
 
-To uninstall, quit Presenter and move `~/Applications/Presenter.app` to Trash. Removing the checkout deletes its source and build files. Recordings remain in the folder you selected in Screenshot. Preferences remain under `local.presenter.utility`.
+To uninstall, quit Presenter and move `~/Applications/Presenter.app` to Trash. Removing the checkout deletes its source and build files. Recordings remain in the folder you selected in Screenshot. Presenter settings remain in its `local.presenter.utility` app container.
 
 ## Build and test
 
@@ -87,7 +89,7 @@ Build without installing:
 zsh build.sh
 ```
 
-Run the 23 placement, person-mask, and recording-destination tests:
+Run placement, person-mask, folder-validation, and Apple-signature tests:
 
 ```sh
 zsh build.sh test
@@ -116,6 +118,8 @@ Turn off **Show Camera** when finished to stop capture and release Cutout render
 
 ## Verified behavior
 
+The security update was checked on the same Apple silicon Mac on October 20–21, 2026. All 24 tests passed, and the sandboxed release passed deep strict signature verification with Hardened Runtime enabled. Live checks confirmed camera startup, the native Screenshot toolbar, and folder selection/reveal. A separate probe using the same entitlements confirmed denial of an unselected file write and an outbound loopback connection. These checks do not constitute a complete security audit; see `VALIDATION.md` for scope and limitations.
+
 Tested on **macOS 27.0.1, Apple silicon, Swift 6.4** on October 16, 2026:
 
 - Release build and local signature verification succeeded.
@@ -136,8 +140,10 @@ Intel Macs, macOS 14, physical multi-display/device changes, and every full-scre
 - `CutoutProcessor.swift`: local Vision person segmentation and transparent Core Image compositing.
 - `OverlayController.swift`: floating panel, mirroring, style, dragging, and click-through.
 - `OverlayPlacement.swift`: placement and display-boundary rules.
-- `RecordingDestination.swift`: Screenshot save-location preferences and validation.
-- `Tests/PresenterTests/`: placement, person-mask, and recording-destination tests.
+- `RecordingFolder.swift`: validated folder selection and read-only security-scoped bookmarks.
+- `TrustedSystemApplication.swift`: Apple signature checks and protected system-app launches.
+- `Presenter.entitlements`: App Sandbox, camera, and user-selected read-only access.
+- `Tests/PresenterTests/`: placement, person-mask, folder-validation, and Apple-signature tests.
 - `RESEARCH.md`, `PRODUCT.md`, and `DESIGN.md`: API evidence, scope, and native interface decisions.
 
 `QuickTimePreview.applescript` is an optional baseline: open it in Script Editor, run it, enable QuickTime's View → Float on Top manually, then continue to screen recording. Presenter does not require it.

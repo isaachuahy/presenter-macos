@@ -34,6 +34,6 @@ mkdir -p Presenter.app/Contents/MacOS
 cp Info.plist Presenter.app/Contents/Info.plist
 cp "$binary_directory/Presenter" Presenter.app/Contents/MacOS/Presenter
 xcrun strip -S -x Presenter.app/Contents/MacOS/Presenter
-codesign --force --sign - --identifier local.presenter.utility Presenter.app
+codesign --force --sign - --options runtime --entitlements Presenter.entitlements --identifier local.presenter.utility Presenter.app
 codesign --verify --strict Presenter.app
 printf 'Built %s/Presenter.app\n' "$PWD"

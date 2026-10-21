@@ -35,7 +35,7 @@ Preserve the implemented reading order:
 2. Open Screen Recorder and a short microphone hint, followed by any recovery guidance.
 3. Show Camera and camera selection.
 4. Appearance: style, continuous size slider, and preset buttons.
-5. More Controls, initially collapsed: mirroring, border, click-through, position reset, and recording save location.
+5. More Controls, initially collapsed: mirroring, optional wake resumption, border, click-through, position reset, and recording-folder shortcut.
 6. Recording Guide, revealed by Help in the footer.
 7. Fixed footer: Recordings, Help, and Quit.
 
@@ -63,10 +63,10 @@ Cutout displays a transparent person layer with `.resizeAspect`, preserving the 
 - **Camera status:** a text label pairs with `video.fill` when running and `video.slash` otherwise. The accessibility label explicitly identifies camera status.
 - **Recorder action:** a full-width native prominent button with `.large` control size stays above the scrollable settings. It reads “Preparing recorder…” and disables while opening. In Cutout, opening waits for the first valid person frame. Command-Shift-R invokes it.
 - **Recovery controls:** camera guidance can expose Retry Camera, System Settings, and Open Recorder Without Camera actions. Recorder errors support text selection.
-- **Camera controls:** Show Camera uses a switch; the camera picker disables when no camera is connected. Mirror Camera is under More Controls.
+- **Camera controls:** Show Camera uses a switch and starts off every launch; the camera picker disables when no camera is connected. Mirror Camera and Resume Camera After Sleep are under More Controls. Wake resumption defaults off and applies only to a camera that was enabled before sleep.
 - **Overlay controls:** the Style segmented picker offers Circle, Rounded, and Cutout. Size has one native slider with a point-width readout and three native toggle-style preset buttons below it. Their selected states follow the current width; clicking a preset snaps the slider to that point. The slider exposes its purpose and width to accessibility. Cutout shows local background-removal guidance and disables White Border. It shows “Removing background…” until ready, or an error with Retry Cutout. The click-through toggle has conditional text explaining how to restore dragging. Reset Camera Position has a help label.
 - **Recording Guide:** Help reveals compact, wrapping instructions and scrolls them into view. The guide starts hidden. It explains Cutout selection, microphone selection, capture area, stopping, playback checks, and camera cleanup.
-- **Save location:** Change Save Location under More Controls updates Screenshot's shared file destination. Recordings in the footer reloads and opens the current recording folder. The destination refreshes when Presenter becomes active, a window becomes key, or a folder/recorder action runs. Non-folder outputs such as QuickTime Player and Mail are shown explicitly. The path truncates in the middle and exposes the full value through help text. The native picker explains that the folder also applies to still screenshots saved as files and takes effect when the recorder is next opened.
+- **Recordings shortcut:** Choose Recordings Shortcut under More Controls selects a folder through a native open panel. Recordings reveals that explicit selection in Finder; on first use it opens the picker. Supporting text explains that Screenshot's Options → Save to controls the recording destination separately. The saved path truncates in the middle and exposes the full value through help text. Application bundles and other packages are rejected. The app retains only read-only, security-scoped access to the selected folder.
 - **Camera panel:** dragging moves the panel unless click-through is enabled. Camera status replaces the preview while it is not running. Cutout shows “Removing background…” before a valid frame or “Cutout unavailable” after failure. Style, size, mirroring, and border update through the menu-bar controls.
 - **Quit:** a native footer button supports Command-Q.
 
@@ -76,7 +76,8 @@ Cutout displays a transparent person layer with `.resizeAspect`, preserving the 
 - **Do** preserve semantic fonts, colors, native focus behavior, accessibility labels, and explanatory text alongside icons.
 - **Do** keep the controls reachable when the camera ignores mouse events.
 - **Do** describe the recording action as opening Apple's recorder; the user starts and stops capture there.
-- **Don't** keep a separate folder shortcut that can drift from Screenshot's destination or present an app output as a folder.
+- **Don't** describe the Recordings shortcut as changing or automatically following Screenshot's save destination.
+- **Don't** restore an enabled camera at app launch or imply stopping Screenshot stops the camera.
 - **Don't** imply Presenter knows when Screenshot stops recording.
 - **Don't** add decorative chrome, fixed web color approximations, or invented component systems to the native camera surface.
 - **Don't** add a geometric border, corner crop, or window shadow to the running Cutout person layer.
